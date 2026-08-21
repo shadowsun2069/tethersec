@@ -152,12 +152,22 @@ class C2Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_PORT
+    import argparse
+    parser = argparse.ArgumentParser(description="Hermes C2 Relay")
+    parser.add_argument("port", nargs="?", type=int, default=DEFAULT_PORT)
+    parser.add_argument("--bind", default="127.0.0.1",
+                        help="Bind address (default: 127.0.0.1 localhost only)")
+    args = parser.parse_args()
 
-    server = HTTPServer(("0.0.0.0", port), C2Handler)
-    print(f"Hermes C2 Relay listening on 0.0.0.0:{port}")
+    port = args.port
+    bind = args.bind
+
+    server = HTTPServer((bind, port), C2Handler)
+    print(f"Hermes C2 Relay listening on {bind}:{port}")
     print(f"Auth token: {AUTH_TOKEN}")
     print(f"Log directory: {LOG_DIR}")
+    if bind == "0.0.0.0":
+        print("⚠️  WARNING: bound to all interfaces — reachable from the network!")
     print("Send commands via: curl -X POST http://<host>:<port> \\")
     print(f'  -H "Content-Type: application/json" \\')
     print(f'  -d \'{{"token":"{AUTH_TOKEN}","command":"ls -la"}}\'')
